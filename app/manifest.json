@@ -1,0 +1,28 @@
+{
+  "name": "库存同步",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "同步库存",
+  "icons": {
+    "16": "images/icon-16.png",
+    "128": "images/icon-128.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "scripts": [
+      "scripts/background.js"
+    ]
+  },
+  "content_scripts": [{
+    "js": ["scripts/main.js"],
+    "matches": ["http://www.duiba.com.cn/*", "http://b-mall-admin.aa123bb.com/*", "http://mall-admin.hongbaosuoping.com/*"],
+    "run_at": "document_end"
+  }],
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon-19.png",
+      "38": "images/icon-38.png"
+    },
+    "default_title": "stockSync"
+  }
+}
