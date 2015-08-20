@@ -14,8 +14,7 @@ var config = {
 var orderData = {};
 
 var dataUrl = {
-    orderPage: 'http://www.duiba.com.cn/Dorder/orderRecord/1452?orderType=devOrder&orderTimeType=create&startDay={currentDay}&endDay={currentDay}&exchangeStatus=success&max=5000', //订单页
-    salesPage: 'http://www.duiba.com.cn/appDataReport/itemDetailSearch?appId=1452&max=1000&orderBy=orderCount&state=desc&dateBetween={currentDay}+-+{currentDay}',
+    salesPage: 'http://www.duiba.com.cn/appDataReport/itemDetailSearch?appId=1452&max=1000&orderBy=orderCount&state=desc&dateBetween={currentDay}+-+{currentDay}',//订单页
     getProduct: '/product/get_product_list/',
     getProductDetails: 'public/#!/productUpdate?product_id=',
     setProduct: ''
@@ -32,10 +31,31 @@ chrome.extension.onRequest.addListener(function(msg, sender) {
     }
 });
 
+function dataFormat(date) {
+    function convertNum(num){
+        if(String(num).length ==1 ) {
+            return '0' + num;
+        } else {
+            return num;
+        }
+    }
+    var currentDay = new Date(date.getTime() - 1000*60*60*24);
+    console.log(currentDay.getDate());
+    var finalDate = currentDay.getFullYear() + '-' + convertNum(currentDay.getMonth() + 1) + '-' + convertNum(currentDay.getDate());
+    return finalDate;
+}
+
 // 启动
 chrome.browserAction.onClicked.addListener(function(tab){
-    if(~tab.url.indexOf('www.duiba.com.cn/appDataReport')) {
-        
+    console.log(tab);
+    if(~tab.url.indexOf('www.duiba.com.cn')) {
+        chrome.tabs.create({
+            index: tab.index + 1,
+            active: true,
+            url: dataUrl.salesPage.replace(/{currentDay}/g, dataFormat(new Date()))
+        }, function(tab) {
+            sendInfo('init', '', tab.id);
+        });
     }
 });
 
