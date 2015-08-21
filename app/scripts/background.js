@@ -5,6 +5,35 @@ function sendInfo(cmd, info, id) {
     });
 }
 
+function sendRequest(url, method, data, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            currentTime = this.getResponseHeader('Date');
+            callback(xhr.responseText);
+        } else if (xhr.readyState === 4 && xhr.status !== 200) {
+            callback({
+                "fail": true,
+                "data": xhr.responseText
+            });
+        }
+    }
+    xhr.onerror = function() {
+        callback({
+            "fail": true,
+            "data": xhr.responseText
+        });
+    };
+    if(method == 'GET') {
+        xhr.open('GET', url, true);
+        xhr.send();
+    } else {
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xhr.send(data);
+    }
+}
+
 //流程
 var config = {
     productEnv: 'http://mall-admin.hongbaosuoping.com/',
@@ -15,7 +44,7 @@ var orderData = {};
 
 var dataUrl = {
     salesPage: 'http://www.duiba.com.cn/appDataReport/itemDetailSearch?appId=1452&max=1000&orderBy=orderCount&state=desc&dateBetween={currentDay}+-+{currentDay}',//订单页
-    getProduct: '/product/get_product_list/',
+    getProduct: 'product/get_product_list/',
     getProductDetails: 'public/#!/productUpdate?product_id=',
     setProduct: ''
 };
@@ -25,11 +54,52 @@ chrome.extension.onRequest.addListener(function(msg, sender) {
     switch(msg.cmd) {
         case 'orderData':
             orderData = msg.data;
+            productNameToId(orderData);
+
             break;
         default:
             break;
     }
 });
+
+function getProductId(name, count) {
+    var data = "sell_out=0&page=1&high_rank=0&pro_state=1&pro_name=" + name;
+    sendRequest(config.devEnv + dataUrl.getProduct, 'POST', data, function(data) {
+        if(!data.fail) {
+            data = JSON.parse(data);
+            if(data.status && data.data && data.data.length) {
+                // id对应数量
+                countToProductId[data.data[0].pro_id] = count;
+            }
+        }
+    });
+}
+
+function getProductDetails(id) {
+    sendRequest(config.devEnv + dataUrl.getProductDetails + id, function(data){
+        if(!data.fail) {
+            data = JSON.parse(data);
+        }
+    });
+}
+
+
+function getProductListDetails(obj){
+    var ids = Object.keys(obj);
+    ids.forEach(function(item) {
+
+    });
+}
+
+var countToProductId = {};
+
+//印射可以得到的Id跟商品名
+function productNameToId(obj){
+    var productNames = Object.keys(obj);
+    productNames.forEach(function(item, index) {
+        getProductId(item, obj[item]);
+    });
+}
 
 function dataFormat(date) {
     function convertNum(num){
@@ -47,7 +117,6 @@ function dataFormat(date) {
 
 // 启动
 chrome.browserAction.onClicked.addListener(function(tab){
-    console.log(tab);
     if(~tab.url.indexOf('www.duiba.com.cn')) {
         chrome.tabs.create({
             index: tab.index + 1,

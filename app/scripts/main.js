@@ -22,18 +22,19 @@ function getDuibaData(){
 }
 
 function init(){
-    if(~currentPage.indexOf('http://www.duiba.com.cn/appDataReport/itemDetailSearch')) { 
+    if(~currentPage.indexOf('http://www.duiba.com.cn/appDataReport/itemDetailSearch')) {
         // 兑吧订单页
         // 得到兑吧销量
         getDuibaData();
     }
 }
 
+init();
 
 chrome.extension.onRequest.addListener(function(msg, sender) {
     switch(msg.cmd) {
         case 'init':
-            init();
+            // init();
             break;
         default:
             break;
