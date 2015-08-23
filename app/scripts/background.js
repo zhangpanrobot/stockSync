@@ -1,3 +1,14 @@
+// 一天只执行一次
+var yesterdayDate = dataFormat(new Date());
+var executedDay = localStorage.getItem('executedDay');
+if(executedDay) {
+    // 当天已执行则停止执行
+    if(~JSON.parse(executedDay).indexOf(yesterdayDate)) return;
+} else {
+    executedDay = [];
+    executedDay.push(yesterdayDate);
+    localStorage.setItem('executedDay', JSON.stringify(executedDay));
+}
 function sendInfo(cmd, info, id) {
     chrome.tabs.sendRequest(id, {
         cmd: cmd,
@@ -135,7 +146,7 @@ function setProduct(id, data) {
 
 // 更新兑吧
 function updateDb(title) {
-    var url = 'http://www.duiba.com.cn/devItem/appItems/1452?itemType=&statusType=&itemName=' + title;
+    var url = 'http://www.duiba.com.cn/devItem/appItems/1452?itemName=' + title;
     chrome.tabs.create()
 }
 
@@ -197,6 +208,7 @@ function dataFormat(date) {
 
 // 启动
 chrome.browserAction.onClicked.addListener(function(tab) {
+    // 兑吧和商城都已登录, 且当天第一次执行插件
     if (~tab.url.indexOf('www.duiba.com.cn')) {
         chrome.tabs.create({
             index: tab.index + 1,
