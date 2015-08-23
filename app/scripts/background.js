@@ -45,8 +45,8 @@ var orderData = {};
 var dataUrl = {
     salesPage: 'http://www.duiba.com.cn/appDataReport/itemDetailSearch?appId=1452&max=1000&orderBy=orderCount&state=desc&dateBetween={currentDay}+-+{currentDay}',//订单页
     getProduct: 'product/get_product_list/',
-    getProductDetails: 'public/#!/productUpdate?product_id=',
-    setProduct: ''
+    getProductDetails: 'product/details/?productid=',
+    setProduct: 'product/add/'
 };
 
 chrome.extension.onRequest.addListener(function(msg, sender) {
@@ -55,7 +55,6 @@ chrome.extension.onRequest.addListener(function(msg, sender) {
         case 'orderData':
             orderData = msg.data;
             productNameToId(orderData);
-
             break;
         default:
             break;
@@ -69,29 +68,70 @@ function getProductId(name, count) {
             data = JSON.parse(data);
             if(data.status && data.data && data.data.length) {
                 // id对应数量
+                if(count == 0) return;
                 countToProductId[data.data[0].pro_id] = count;
             }
         }
     });
 }
 
-function getProductDetails(id) {
-    sendRequest(config.devEnv + dataUrl.getProductDetails + id, function(data){
+function paramSerialize(data) {
+    var keys = Object.keys(data);
+    var str = '';
+    keys.forEach(function(item, index) {
+        str += (item + '=' + data[item] + '&');
+    });
+    return str.slice(0,-1);
+}
+
+function setProduct(id, data) {
+    console.log(id);
+    console.log(data);
+    sendRequest(config.devEnv + dataUrl.setProduct, 'POST', data, function(data) {
         if(!data.fail) {
             data = JSON.parse(data);
+            if(data.status && data.data && data.data.length) {
+                // id对应数量
+                if(count == 0) return;
+                countToProductId[data.data[0].pro_id] = count;
+            }
         }
     });
 }
 
+// 商品详情
+function getProductDetails(id) {
+    sendRequest(config.devEnv + dataUrl.getProductDetails + id, 'GET', '', function(data){
+        if(!data.fail) {
+            data = JSON.parse(data);
+            if(data.status == 1 && data.data) {
+                // 更新库存
+                data.data.pro_left_quantity -= countToProductId[id];
+                setProduct(id, data.data);
+            }
+        }
+    });
+}
 
 function getProductListDetails(obj){
     var ids = Object.keys(obj);
     ids.forEach(function(item) {
-
+        getProductDetails(item);
     });
 }
 
+setTimeout(function(){
+    getProductListDetails.call(null, countToProductId);
+}, 10000);
+
 var countToProductId = {};
+
+//打开所有id product窗口, 根据product_id与tabid去设定库存
+function ProductPage(obj) {
+    chrome.tabs.create(function(){
+
+    });
+}
 
 //印射可以得到的Id跟商品名
 function productNameToId(obj){
