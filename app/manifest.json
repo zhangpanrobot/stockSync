@@ -24,5 +24,8 @@
       "38": "images/icon-38.png"
     },
     "default_title": "stockSync"
-  }
+  },
+  "permissions": [
+    "tabs"
+  ]
 }

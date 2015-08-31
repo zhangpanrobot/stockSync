@@ -1,14 +1,41 @@
-// 一天只执行一次
-var yesterdayDate = dataFormat(new Date());
-var executedDay = localStorage.getItem('executedDay');
-if(executedDay) {
-    // 当天已执行则停止执行
-    if(~JSON.parse(executedDay).indexOf(yesterdayDate)) return;
-} else {
-    executedDay = [];
-    executedDay.push(yesterdayDate);
-    localStorage.setItem('executedDay', JSON.stringify(executedDay));
+function dataFormat(date) {
+    function convertNum(num) {
+        if (String(num).length == 1) {
+            return '0' + num;
+        } else {
+            return num;
+        }
+    }
+    var currentDay = new Date(date.getTime() - 1000 * 60 * 60 * 24);
+    var finalDate = currentDay.getFullYear() + '-' + convertNum(currentDay.getMonth() + 1) + '-' + convertNum(currentDay.getDate());
+    return finalDate;
 }
+
+var executed = false;
+// 一天只执行一次
+function executedTimeCheck() {
+    var yesterdayDate = dataFormat(new Date());
+    var executedDay = localStorage.getItem('executedDay');
+    if (executedDay) {
+        // 当天已执行则停止执行
+        (function() {
+            var executedDayObj = JSON.parse(executedDay);
+            if (~executedDayObj.indexOf(yesterdayDate)) {
+                executed = true;
+            } else {
+                executedDayObj.push(yesterdayDate);
+                localStorage.setItem('executedDay', JSON.stringify(executedDayObj));
+                executed = false;
+            }
+        })();
+    } else {
+        executedDay = [];
+        executedDay.push(yesterdayDate);
+        localStorage.setItem('executedDay', JSON.stringify(executedDay));
+        executed = false;
+    }
+}
+
 function sendInfo(cmd, info, id) {
     chrome.tabs.sendRequest(id, {
         cmd: cmd,
@@ -97,7 +124,7 @@ function paramSerialize(data) {
 
 function setProduct(id, data) {
     data.id = id;
-    var picture1 = data.img.map(function(item){
+    var picture1 = data.img.map(function(item) {
         return item.path;
     }).join();
     var paramData = {
@@ -119,7 +146,7 @@ function setProduct(id, data) {
         snap_switch: data.snap_switch //是否开启了抢购
     };
 
-    if(data.snap_switch === "true") {
+    if (data.snap_switch === "true") {
         paramData.su_title = data.snap.su_title; //抢购标题
         paramData.su_start_date = data.snap.su_start_date; //活动开始日期
         paramData.su_end_date = data.snap.su_end_date; //活动结束日期
@@ -137,17 +164,31 @@ function setProduct(id, data) {
     sendRequest(config.devEnv + dataUrl.setProduct, 'POST', paramSerialize(paramData), function(data) {
         if (!data.fail) {
             console.log(id);
+            successCount++;
+            checkSuccess(successCount);
         }
+        // 成功更新N个
+        // 检查返回
+
     });
 
     updateDb(data.pro_name);
 
 }
 
+var successCount = 0;
+
+// 检查返回
+function checkSuccess(length) {
+    if (Object.keys(countToProductId).length == length) {
+        alert('成功更新' + length + '个商品库存');
+    }
+}
+
 // 更新兑吧
 function updateDb(title) {
     var url = 'http://www.duiba.com.cn/devItem/appItems/1452?itemName=' + title;
-    chrome.tabs.create()
+    // chrome.tabs.create()
 }
 
 // 商品详情
@@ -174,10 +215,6 @@ function getProductListDetails(obj) {
 
 var countToProductId = {};
 
-setTimeout(function() {
-    getProductListDetails.call(null, countToProductId);
-}, 10000);
-
 //打开所有id product窗口, 根据product_id与tabid去设定库存
 function ProductPage(obj) {
     chrome.tabs.create(function() {
@@ -191,32 +228,71 @@ function productNameToId(obj) {
     productNames.forEach(function(item, index) {
         getProductId(item, obj[item]);
     });
+    setTimeout(function() {
+        getProductListDetails(countToProductId);
+    }, 10000);
 }
 
-function dataFormat(date) {
-    function convertNum(num) {
-        if (String(num).length == 1) {
-            return '0' + num;
-        } else {
-            return num;
-        }
-    }
-    var currentDay = new Date(date.getTime() - 1000 * 60 * 60 * 24);
-    var finalDate = currentDay.getFullYear() + '-' + convertNum(currentDay.getMonth() + 1) + '-' + convertNum(currentDay.getDate());
-    return finalDate;
-}
 
 // 启动
 chrome.browserAction.onClicked.addListener(function(tab) {
+    executedTimeCheck();
     // 兑吧和商城都已登录, 且当天第一次执行插件
+    // var isBothLogin = [];
+    // //异步循环(需要promise)
+    // chrome.windows.getAll(function(wins) {
+    //     wins.forEach(function(item) {
+    //         chrome.tabs.getAllInWindow(item.id, function(items) {
+    //             items.forEach(function(curTab) {
+    //                 console.log(curTab);
+    //                 if (curTab.url) {
+    //                     console.log(curTab.url);
+    //                     if (~curTab.url.indexOf('www.duiba.com.cn') && !~isBothLogin.indexOf('www.duiba.com.cn')) {
+    //                         console.log(1);
+    //                         isBothLogin.push('www.duiba.com.cn');
+    //                     }
+    //                     if (~curTab.url.indexOf(config.devEnv) && !~isBothLogin.indexOf(config.devEnv)) {
+    //                         isBothLogin.push(config.devEnv);
+    //                         console.log(2);
+    //                     }
+    //                 }
+    //             });
+    //         });
+    //     });
+    // });
+
+    // setTimeout(function() {
+    //     if (isBothLogin.length == 2) {
+    //         if (!executed) {
+    //             chrome.tabs.create({
+    //                 index: tab.index + 1,
+    //                 active: true,
+    //                 url: dataUrl.salesPage.replace(/{currentDay}/g, dataFormat(new Date()))
+    //             }, function(tab) {
+    //                 sendInfo('init', '', tab.id);
+    //             });
+    //         } else {
+    //             // 提示已更新
+    //             alert('今日已更新');
+    //         }
+    //     } else {
+    //         alert('请确保已同时登录兑吧及红包商城管理后台;');
+    //     }
+    // }, 100);
+
     if (~tab.url.indexOf('www.duiba.com.cn')) {
-        chrome.tabs.create({
-            index: tab.index + 1,
-            active: true,
-            url: dataUrl.salesPage.replace(/{currentDay}/g, dataFormat(new Date()))
-        }, function(tab) {
-            sendInfo('init', '', tab.id);
-        });
+        if (!executed) {
+            chrome.tabs.create({
+                index: tab.index + 1,
+                active: true,
+                url: dataUrl.salesPage.replace(/{currentDay}/g, dataFormat(new Date()))
+            }, function(tab) {
+                sendInfo('init', '', tab.id);
+            });
+        } else {
+            // 提示已更新
+            alert('今日已更新');
+        }
     }
 });
 
