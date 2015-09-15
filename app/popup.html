@@ -8,18 +8,29 @@
     <!-- endbuild -->
     <!-- build:css styles/main.css -->
     <link href="styles/main.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles/classic.css">
+    <link rel="stylesheet" href="styles/classic.date.css">
     <!-- endbuild -->
   </head>
   <body>
-    <h1>'Allo, 'Allo!</h1>
-
+    <h1>请选择操作类型</h1>
+    <div class="ope_type">
+        <ul>
+            <li><span>同步交易数据</span><input type="text"></li>
+            <li><span>同步新增商品</span></li>
+        </ul>
+    </div>
     <!-- build:js scripts/vendor.js -->
     <!-- bower:js -->
     <!-- endbower -->
     <!-- endbuild -->
 
     <!-- build:js scripts/popup.js -->
+    <script src="scripts/jquery-2.1.4.min.js"></script>
+    <script src="scripts/picker.js"></script>
+    <script src="scripts/picker.date.js"></script>
     <script src="scripts/popup.js"></script>
+    <script src="scripts/zh_CN.js"></script>
     <!-- endbuild -->
   </body>
 </html>

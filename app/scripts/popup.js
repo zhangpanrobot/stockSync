@@ -1,7 +1,5 @@
 'use strict';
 
-console.log('\'Allo \'Allo! Popup');
-
-chrome.browserAction.onClicked.addListener(function(tab){
-    console.log(tab);
+$(document).ready(function() {
+	var picker = $('.ope_type li').eq(0).find('input').pickadate();
 });

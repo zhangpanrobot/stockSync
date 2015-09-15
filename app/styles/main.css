@@ -1,3 +1,41 @@
 body {
   padding: 20px;
+  width: 400px;
+  height: 400px;
+  color: #333;
+}
+ul{
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.ope_type li{
+	float: left;
+	position: relative;
+	width: 50%;
+	cursor: pointer;
+	text-align: center;
+	-webkit-user-select: none;
+	user-select: none;
+}
+.ope_type li input{
+	border: 0;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	background-color: transparent;
+}
+.ope_type li input:focus{
+	border: 0;
+	box-shadow: 0;
+}
+.ope_type li span{
+	color: #eee;
+	border-radius: 5px;
+	padding: 15px;
+	background-color: rgb(31, 174, 255);
+}
+.ope_type li span:active{
+	background-color: rgb(37, 114, 235);
 }

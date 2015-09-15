@@ -99,6 +99,8 @@ chrome.extension.onRequest.addListener(function(msg, sender) {
     }
 });
 
+var nametoId = {};
+
 function getProductId(name, count) {
     var data = "sell_out=0&page=1&high_rank=0&pro_state=1&pro_name=" + name;
     sendRequest(config.devEnv + dataUrl.getProduct, 'POST', data, function(data) {
@@ -107,6 +109,7 @@ function getProductId(name, count) {
             if (data.status && data.data && data.data.length) {
                 // id对应数量
                 if (count == 0) return;
+                nametoId[data.data[0].pro_id] = name;
                 countToProductId[data.data[0].pro_id] = count;
             }
         }
@@ -180,8 +183,14 @@ var successCount = 0;
 
 // 检查返回
 function checkSuccess(length) {
-    if (Object.keys(countToProductId).length == length) {
-        alert('成功更新' + length + '个商品库存');
+    var conutIds = Object.keys(countToProductId);
+    if (conutIds.length == length) {
+        var successGoods = [];
+        conutIds.forEach(function(item, index) {
+            successGoods[index] = "商品名: " + nametoId[item] + ';商品数量: ' + countToProductId[item];
+        });
+        alert('成功更新' + length + '个商品库存;' + successGoods.join(','));
+        successCount = 0;
     }
 }
 
@@ -237,48 +246,7 @@ function productNameToId(obj) {
 // 启动
 chrome.browserAction.onClicked.addListener(function(tab) {
     executedTimeCheck();
-    // 兑吧和商城都已登录, 且当天第一次执行插件
-    // var isBothLogin = [];
-    // //异步循环(需要promise)
-    // chrome.windows.getAll(function(wins) {
-    //     wins.forEach(function(item) {
-    //         chrome.tabs.getAllInWindow(item.id, function(items) {
-    //             items.forEach(function(curTab) {
-    //                 console.log(curTab);
-    //                 if (curTab.url) {
-    //                     console.log(curTab.url);
-    //                     if (~curTab.url.indexOf('www.duiba.com.cn') && !~isBothLogin.indexOf('www.duiba.com.cn')) {
-    //                         console.log(1);
-    //                         isBothLogin.push('www.duiba.com.cn');
-    //                     }
-    //                     if (~curTab.url.indexOf(config.devEnv) && !~isBothLogin.indexOf(config.devEnv)) {
-    //                         isBothLogin.push(config.devEnv);
-    //                         console.log(2);
-    //                     }
-    //                 }
-    //             });
-    //         });
-    //     });
-    // });
 
-    // setTimeout(function() {
-    //     if (isBothLogin.length == 2) {
-    //         if (!executed) {
-    //             chrome.tabs.create({
-    //                 index: tab.index + 1,
-    //                 active: true,
-    //                 url: dataUrl.salesPage.replace(/{currentDay}/g, dataFormat(new Date()))
-    //             }, function(tab) {
-    //                 sendInfo('init', '', tab.id);
-    //             });
-    //         } else {
-    //             // 提示已更新
-    //             alert('今日已更新');
-    //         }
-    //     } else {
-    //         alert('请确保已同时登录兑吧及红包商城管理后台;');
-    //     }
-    // }, 100);
 
     if (~tab.url.indexOf('www.duiba.com.cn')) {
         if (!executed) {
@@ -296,4 +264,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     }
 });
 
-// 登录后打开兑吧订单页
+//一天过后, executed变为false
+
+

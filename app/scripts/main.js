@@ -6,7 +6,6 @@ function requestTo(obj) { //send to background
     chrome.extension.sendRequest(obj);
 }
 
-var currentPage = location.href;
 
 function getDuibaData(){
     var orders = $('tbody tr.title');
@@ -21,11 +20,24 @@ function getDuibaData(){
     });
 }
 
+function getNewProducts(){
+    var productsEle = $('tbody tr');
+    var productData = {};
+    [].slice.call(productData).forEach(function(item) {
+        productData[item.find('input').attr('id')] = {
+            
+        };
+    });
+}
+
 function init(){
+    var currentPage = location.href;
     if(~currentPage.indexOf('http://www.duiba.com.cn/appDataReport/itemDetailSearch')) {
         // 兑吧订单页
         // 得到兑吧销量
         getDuibaData();
+    } else if(~currentPage.indexOf('devItem/appItems')) {
+
     }
 }
 
