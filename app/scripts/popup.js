@@ -1,7 +1,20 @@
 'use strict';
 
+function requestTo(obj) { //send to background
+	chrome.extension.sendRequest(obj);
+}
 $(document).ready(function() {
 	var picker = $('.ope_type li').eq(0).find('input').pickadate();
+	$('.ope_type li').on('click', function(e) {
+		var index = $(this).index();
+		if (!index) {
+
+		} else { //同步新增商品
+			requestTo({
+				msg: 'productList'
+			});
+		}
+	});
 });
 
 var data = {

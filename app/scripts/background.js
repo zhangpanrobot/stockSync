@@ -79,9 +79,12 @@ var config = {
 };
 
 var orderData = {};
+var productListData = {};
+
 
 var dataUrl = {
     salesPage: 'http://www.duiba.com.cn/appDataReport/itemDetailSearch?appId=1452&max=1000&orderBy=orderCount&state=desc&dateBetween={currentDay}+-+{currentDay}', //订单页
+    productList: 'http://www.duiba.com.cn/devItem/appItems/1452?itemType=object&max=10000',
     getProduct: 'product/get_product_list/',
     getProductDetails: 'product/details/?productid=',
     setProduct: 'product/add/'
@@ -94,12 +97,50 @@ chrome.extension.onRequest.addListener(function(msg, sender) {
             orderData = msg.data;
             productNameToId(orderData);
             break;
+        case 'productList':
+            getProductList();
+            break;
+        case 'productList_data':
+            productListData = msg.data;
+            openProductEditTab(productListData);
+            break;
+        case 'oneProduct':
+            var data = msg.data;
+            productListData[msg.id].picture1 = data.picture1;
+            productListData[msg.id].picture2 = data.picture2;
+            productListData[msg.id].picture3 = data.picture3;
+            productListData[msg.id].pro_description = data.pro_description;
+            productListData[msg.id].pro_convert_price = data.pro_convert_price;
+            break;
         default:
             break;
     }
 });
 
+function productListBack(data) {
+    if (!data.fail) {
+
+    }
+}
+
+function openProductEditTab(data) {
+    var ids = Object.keys(data);
+    setInteval(function(){
+        
+    }, 1000);
+}
+
 var nametoId = {};
+
+// 打开productList页
+function getProductList(callback) {
+    chrome.tabs.create({
+        active: false,
+        url: dataUrl.productList
+    }, function(tab) {
+        // sendInfo('init', '', tab.id);
+    });
+}
 
 function getProductId(name, count) {
     var data = "sell_out=0&page=1&high_rank=0&pro_state=1&pro_name=" + name;
@@ -242,12 +283,9 @@ function productNameToId(obj) {
     }, 10000);
 }
 
-
 // 启动
 chrome.browserAction.onClicked.addListener(function(tab) {
     executedTimeCheck();
-
-
     if (~tab.url.indexOf('www.duiba.com.cn')) {
         if (!executed) {
             chrome.tabs.create({
@@ -265,5 +303,3 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 });
 
 //一天过后, executed变为false
-
-
