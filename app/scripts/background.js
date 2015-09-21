@@ -85,13 +85,14 @@ var productListData = {};
 var dataUrl = {
     salesPage: 'http://www.duiba.com.cn/appDataReport/itemDetailSearch?appId=1452&max=1000&orderBy=orderCount&state=desc&dateBetween={currentDay}+-+{currentDay}', //订单页
     productList: 'http://www.duiba.com.cn/devItem/appItems/1452?itemType=object&max=10000',
+    productIdTab: 'http://www.duiba.com.cn/devItem/editAppItem?appItemId=',
     getProduct: 'product/get_product_list/',
     getProductDetails: 'product/details/?productid=',
     setProduct: 'product/add/'
 };
 
 chrome.extension.onRequest.addListener(function(msg, sender) {
-    var id = sender.tab.id;
+    var id = sender.tab && sender.tab.id;
     switch (msg.cmd) {
         case 'orderData':
             orderData = msg.data;
@@ -125,9 +126,15 @@ function productListBack(data) {
 
 function openProductEditTab(data) {
     var ids = Object.keys(data);
-    setInteval(function(){
-        
-    }, 1000);
+    ids.forEach(function(item) {
+        function openIdTab(item) {
+            chrome.tabs.create({
+                active: false,
+                url: dataUrl.productIdTab + item
+            });
+        }
+        setInterval(openIdTab, 2000);
+    });
 }
 
 var nametoId = {};

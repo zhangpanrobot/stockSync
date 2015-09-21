@@ -11,7 +11,7 @@ $(document).ready(function() {
 
 		} else { //同步新增商品
 			requestTo({
-				msg: 'productList'
+				cmd: 'productList'
 			});
 		}
 	});

@@ -33,7 +33,7 @@ function getNewProducts() {
         };
     });
     requestTo({
-        msg: productList_data,
+        cmd: 'productList_data',
         data: productData
     });
 }
@@ -48,7 +48,7 @@ function getOneProduct() {
     data.picture3 = $$('img.logo').src;
     data.pro_convert_price = $$('#credits').value;
     requestTo({
-        msg: 'oneProduct',
+        cmd: 'oneProduct',
         id: paramParse('appItemId'),
         data: data
     });
